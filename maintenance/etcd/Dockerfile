@@ -1,21 +1,21 @@
-FROM registry.redhat.io/ubi9:9.7-1762180182 AS build
+# Use official etcd image to get pre-built etcdctl
+FROM quay.io/coreos/etcd:v3.5.18 AS etcd-source
 
-WORKDIR /root
-
-RUN dnf -y install git go && dnf clean all
-RUN git clone -b v3.5.18 https://github.com/etcd-io/etcd.git && \
-    cd etcd && \
-    ./build.sh && \
-    export PATH="$PATH:`pwd`/bin" && \
-    cp -rf /root/etcd/bin/etcdctl /usr/bin/etcdctl
-    
-# Second stage: Create the final image
-FROM registry.redhat.io/ubi9:9.7-1762180182
-ADD defrag.sh /opt/
-
+# Get jq from UBI image with jq installed
+FROM registry.redhat.io/ubi9:9.7-1762180182 AS jq-source
 RUN dnf -y install jq && dnf clean all
 
-# Copy etcdctl from builder
-COPY --from=build /usr/bin/etcdctl /usr/bin/etcdctl
+# Final image
+FROM registry.redhat.io/ubi9:9.7-1762180182
+
+# Copy etcdctl from the official etcd image
+COPY --from=etcd-source /usr/local/bin/etcdctl /usr/bin/etcdctl
+
+# Copy jq and its dependencies from the jq-source stage
+COPY --from=jq-source /usr/bin/jq /usr/bin/jq
+COPY --from=jq-source /usr/lib64/libjq.so.1 /usr/lib64/libjq.so.1
+COPY --from=jq-source /usr/lib64/libonig.so.5 /usr/lib64/libonig.so.5
+
+ADD defrag.sh /opt/
 
 CMD [ "/bin/sh" ]
