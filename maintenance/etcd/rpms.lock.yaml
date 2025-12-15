@@ -1,0 +1,7 @@
+lockfileVersion: 1
+lockfileVendor: redhat
+arches:
+  - arch: x86_64
+    packages:
+      - name: jq
+
