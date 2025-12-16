@@ -2,7 +2,7 @@ module github.com/redhat-appstudio/infrastructure/build-deps
 
 go 1.22
 
-toolchain go1.24.10
+toolchain go1.22.11
 
 require go.etcd.io/etcd/etcdctl/v3 v3.5.18
 
