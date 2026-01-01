@@ -17,8 +17,6 @@ FROM registry.redhat.io/ubi9:9.7-1762180182
 
 ADD defrag.sh /opt/
 
-RUN dnf -y install jq && dnf clean all
-
 # Copy etcdctl from builder
 COPY --from=build /build/etcdctl /usr/bin/etcdctl
 
