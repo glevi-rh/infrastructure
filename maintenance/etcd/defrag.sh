@@ -13,8 +13,10 @@ echo $first_endpoint
 rev=$(ETCDCTL_ENDPOINTS="${first_endpoint}" etcdctl endpoint status --write-out="json" | egrep -o '"revision":[0-9]*' | egrep -o '[0-9]*')
 etcdctl compact --command-timeout 60s --physical $rev
 
-diff=$(ETCDCTL_ENDPOINTS="${first_endpoint}" etcdctl endpoint status --write-out=json | jq -r '.[] | .Status.dbSize - .Status.dbSizeInUse')
-ondisk=$(ETCDCTL_ENDPOINTS="${first_endpoint}" etcdctl endpoint status --write-out=json | jq -r '.[] | .Status.dbSize')
+status_json=$(ETCDCTL_ENDPOINTS="${first_endpoint}" etcdctl endpoint status --write-out=json)
+ondisk=$(echo "$status_json" | grep -oE '"dbSize":[0-9]*' | head -1 | grep -oE '[0-9]*')
+inuse=$(echo "$status_json" | grep -oE '"dbSizeInUse":[0-9]*' | head -1 | grep -oE '[0-9]*')
+diff=$((ondisk - inuse))
 
 # Calculate fragmented percentage
 fragmentedPercentage=$(( ${diff} * 100 / ${ondisk} ))
